@@ -155,18 +155,24 @@ Window {
                     caption: "H"
                     value: colorObject._HSBAhue
                     decimals: 2
+                    max: 1
+                    min: 0
                 }
                 NumberBox {
                     id: sat
                     caption: "S"
                     value: colorObject._HSBAsaturation
                     decimals: 2
+                    max: 1
+                    min: 0
                 }
                 NumberBox {
                     id: brightness
                     caption: "B"
                     value: colorObject._HSBAbrightness
                     decimals: 2
+                    max: 1
+                    min: 0
                 }
                 NumberBox {
                     id: hsbAlpha
@@ -174,6 +180,8 @@ Window {
                     value: colorObject._HSBAalpha
                     decimals: 2
                     onValueUpdated:  alphaSlider.setValueSlider(value)
+                    max: 1
+                    min: 0
                 }
             }
 
