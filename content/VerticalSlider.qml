@@ -1,36 +1,30 @@
 import QtQuick 2.0
+import "mathUtils.js" as MathUtils
 
 Item {
-
-    QtObject
-    {
-        id: valueSliderObject
-        property real _value: (1 - pickerCursor.y/height)
-    }
-
-    function getValueSlider() {
-        return valueSliderObject._value
-    }
-
-    function setValueSlider(value) {
-        if (value >= 0 && value <= 1)
-            pickerCursor.y = (1 - value)*height ;
-    }
-
-    width: 15; height: 200
     id: root
+    width: 15; height: 200
+
+    property real value
+
+    signal accepted
 
     // Cursor
     Item {
         id: pickerCursor
         width: parent.width
-        height : 8
+        height: 8
+
         Rectangle {
             id: cursor
-            x: -4; y: -height*0.5
-            width: parent.width + -2*x; height: parent.height
-            border.color: "black"; border.width: 1
+            x: -4
+            y: MathUtils.clamp(root.height * (1 - root.value), 0.0, root.height)
+            width: parent.width + -2*x
+            height: parent.height
+            border.color: "black"
+            border.width: 1
             color: "transparent"
+
             Rectangle {
                 anchors.fill: parent; anchors.margins: 2
                 border.color: "white"; border.width: 1
@@ -41,10 +35,15 @@ Item {
 
     MouseArea {
         anchors.fill: parent
-        drag.target: pickerCursor
-        drag.axis: Drag.YAxis
-        drag.minimumY: 0
-        drag.maximumY: root.height
-        onClicked: pickerCursor.y = mouseY
+        function sliderHandleMouse(mouse){
+            if (mouse.buttons & Qt.LeftButton) {
+                root.value = MathUtils.clampAndProject(mouse.y, 0.0, height, 1.0, 0.0)
+            }
+        }
+        onPositionChanged: sliderHandleMouse(mouse)
+        onPressed: sliderHandleMouse(mouse)
+        onReleased: {
+            root.accepted()
+        }
     }
 }

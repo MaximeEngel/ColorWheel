@@ -4,24 +4,28 @@ import QtQuick.Layouts 1.1
 import "content"
 import "content/ColorUtils.js" as ColorUtils
 
-Window {
+Item {
+    id: root
     width: 600
     height: 400
-    color: "#3C3C3C"
+    focus: true
 
-    QtObject {
-        id: colorObject
-        property int _RGBAred: ColorUtils.getChannelStr(_hexadecimal, 1)
-        property int _RGBAgreen: ColorUtils.getChannelStr(_hexadecimal, 2)
-        property int _RGBAblue: ColorUtils.getChannelStr(_hexadecimal, 3)
-        property int _RGBAalpha: parseInt(alphaSlider.getValueSlider() * 255)
+    // Color value in RGBA with floating point values between 0.0 and 1.0.
+    property vector4d colorRGBA: Qt.vector4d(1,1,1,1) ;
+    QtObject{
+        id: m
+        property vector4d colorHSVA: ColorUtils.rgba2hsva(colorRGBA);
+    }
 
-        property double _HSBAhue: wheel.getHue()
-        property double _HSBAsaturation: wheel.getSaturation()
-        property double _HSBAbrightness: brigthnessSlider.getValueSlider()
-        property double _HSBAalpha: alphaSlider.getValueSlider()
 
-        property string _hexadecimal: "#"+ColorUtils.intToHexa(_RGBAalpha, 2) + ColorUtils.hsba(_HSBAhue, _HSBAsaturation, _HSBAbrightness, _HSBAalpha).toString().substr(1, 6);
+    signal accepted
+
+    onColorRGBAChanged: {
+        alphaSlider.value = colorRGBA.w
+//        rgbAlpha.value = root.colorRGBA.w
+    }
+    onAccepted: {
+        console.debug("DATA => accepted")
     }
 
     RowLayout {
@@ -80,9 +84,7 @@ Window {
                 gradient: Gradient {
                     GradientStop {
                         position: 0.0
-                        color: ColorUtils.hsba(colorObject._HSBAhue,
-                                               colorObject._HSBAsaturation, colorObject._HSBAbrightness,
-                                               1)
+                        color: Qt.rgba(colorRGBA.x, colorRGBA.y, colorRGBA.z, 1)
                     }
                     GradientStop {
                         position: 1.0
@@ -93,6 +95,12 @@ Window {
             VerticalSlider {
                 id: alphaSlider
                 anchors.fill: parent
+                onValueChanged: {
+                    colorRGBA.w = value
+                }
+                onAccepted: {
+                    root.accepted()
+                }
             }
         }
 
@@ -117,9 +125,7 @@ Window {
                     height: parent.height
                     border.width: 1
                     border.color: "black"
-                    color:  ColorUtils.hsba(colorObject._HSBAhue,
-                                            colorObject._HSBAsaturation, colorObject._HSBAbrightness,
-                                            colorObject._HSBAalpha)
+                    color:  Qt.rgba(colorRGBA.x, colorRGBA.y, colorRGBA.z, colorRGBA.w)
                 }
             }
 
@@ -135,7 +141,7 @@ Window {
                     font.capitalization: "AllUppercase"
                     maximumLength: 9
                     focus: true
-                    text: colorObject._hexadecimal
+                    text: Qt.rgba(colorRGBA.x, colorRGBA.y, colorRGBA.z, colorRGBA.w)
                     font.family: "TlwgTypewriter"
                     anchors.verticalCenterOffset: 0
                     anchors.verticalCenter: parent.verticalCenter
@@ -153,15 +159,21 @@ Window {
                 NumberBox {
                     id: hue
                     caption: "H"
-                    value: colorObject._HSBAhue
+                    value: Math.round(m.colorHSVA.x*100)/100 // 2 Decimals
                     decimals: 2
                     max: 1
                     min: 0
+                    onAccepted: {
+                        var hsva = Qt.vector4d(m.colorHSVA)
+                        hsva.x = boxValue ;
+                        colorRGBA.x = ColorUtils.hsva2rgba(hsva).x
+                        root.accepted()
+                    }
                 }
                 NumberBox {
                     id: sat
                     caption: "S"
-                    value: colorObject._HSBAsaturation
+                    value: Math.round(m.colorHSVA.y*100)/100 // 2 Decimals
                     decimals: 2
                     max: 1
                     min: 0
@@ -169,7 +181,7 @@ Window {
                 NumberBox {
                     id: brightness
                     caption: "B"
-                    value: colorObject._HSBAbrightness
+                    value: Math.round(m.colorHSVA.z*100)/100 // 2 Decimals
                     decimals: 2
                     max: 1
                     min: 0
@@ -177,11 +189,14 @@ Window {
                 NumberBox {
                     id: hsbAlpha
                     caption: "A"
-                    value: colorObject._HSBAalpha
+                    value: Math.round(m.colorHSVA.w*100)/100 // 2 Decimals
                     decimals: 2
-                    onValueUpdated:  alphaSlider.setValueSlider(value)
                     max: 1
                     min: 0
+                    onAccepted: {
+                        colorRGBA.w = boxValue
+                        root.accepted()
+                    }
                 }
             }
 
@@ -192,35 +207,50 @@ Window {
                 NumberBox {
                     id: red
                     caption: "R"
-                    value: colorObject._RGBAred
+                    value:  Math.round(root.colorRGBA.x * 255)
                     min: 0
                     max: 255
                     decimals: 0
+                    onAccepted: {
+                        colorRGBA.x = boxValue/255
+                        root.accepted()
+                    }
                 }
                 NumberBox {
                     id: green
                     caption: "G"
-                    value: colorObject._RGBAgreen
+                    value:  Math.round(root.colorRGBA.y * 255)
                     min: 0
                     max: 255
                     decimals: 0
+                    onAccepted: {
+                        root.colorRGBA.y = boxValue/255
+                        root.accepted()
+                    }
                 }
                 NumberBox {
                     id: blue
                     caption: "B"
-                    value: colorObject._RGBAblue
+                    value:  Math.round(root.colorRGBA.z * 255)
                     min: 0
                     max: 255
                     decimals: 0
+                    onAccepted: {
+                        root.colorRGBA.z = boxValue/255
+                        root.accepted()
+                    }
                 }
                 NumberBox {
                     id: rgbAlpha
                     caption: "A"
-                    value: colorObject._RGBAalpha
+                    value: Math.round(root.colorRGBA.w * 255)
                     min: 0
                     max: 255
                     decimals: 0
-                    onValueUpdated: alphaSlider.setValueSlider(value)
+                    onAccepted: {
+                        root.colorRGBA.w = boxValue/255
+                        root.accepted()
+                    }
                 }
             }
         }
