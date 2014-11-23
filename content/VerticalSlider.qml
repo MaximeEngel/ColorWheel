@@ -3,11 +3,21 @@ import "mathUtils.js" as MathUtils
 
 Item {
     id: root
-    width: 15; height: 200
+    width: 15
+    height: 200
 
     property real value
-
     signal accepted
+
+    states :
+        // When user is moving the slider
+        State {
+            name: "editing"
+            PropertyChanges {
+                target: root
+                value: value // Better solution ? because the value is change in the fonction of mouse area
+            }
+        }
 
     // Cursor
     Item {
@@ -34,8 +44,11 @@ Item {
     }
 
     MouseArea {
+        id: mouseAreaSlider
         anchors.fill: parent
+
         function sliderHandleMouse(mouse){
+            root.state = 'editing'
             if (mouse.buttons & Qt.LeftButton) {
                 root.value = MathUtils.clampAndProject(mouse.y, 0.0, height, 1.0, 0.0)
             }
@@ -43,6 +56,7 @@ Item {
         onPositionChanged: sliderHandleMouse(mouse)
         onPressed: sliderHandleMouse(mouse)
         onReleased: {
+            root.state = ''
             root.accepted()
         }
     }

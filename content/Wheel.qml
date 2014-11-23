@@ -5,24 +5,23 @@ import QtQuick 2.0
 
 Item {
     id: root
+    width: 200
+    height: 200
 
-    QtObject
-    {
-        id: objectColor
-        property real hue : Math.ceil((Math.atan2(((pickerCursor.y+pickerCursor.r-wheel.height/2)*(-1)),((pickerCursor.x+pickerCursor.r-wheel.width/2)))/(Math.PI*2)+0.5)*100)/100
-        property real saturation : Math.ceil(Math.sqrt(Math.pow(pickerCursor.x+pickerCursor.r-width/2,2)+Math.pow(pickerCursor.y+pickerCursor.r-height/2,2))/wheel.height*2*100)/100;
-    }
+    property real hue : 1
+    property real saturation : 1
+    signal accepted
 
-    function getHue(){
-        return objectColor.hue ;
-    }
-
-    function getSaturation(){
-        return objectColor.saturation ;
-    }
-
-
-    width: 200 ; height: 200
+    states :
+        // When user is moving the slider
+        State {
+            name: "editing"
+            PropertyChanges {
+                target: root
+                hue: hue // Better solution ? because the value is change in the fonction of mouse area
+                saturation: saturation
+            }
+        }
 
     Rectangle {
         id: wheel
@@ -80,7 +79,8 @@ Item {
 
         Item {
             id: pickerCursor
-            x: parent.width/2-r; y:parent.height/2-r
+            x: parent.width/2-r
+            y:parent.height/2-r
             property int r : 8
             Rectangle {
                 width: parent.r*2; height: parent.r*2
@@ -99,7 +99,8 @@ Item {
         MouseArea {            
             id : wheelArea
             // Keep cursor in wheel
-            function keepCursorInWheel(mouse, wheelArea, cursor, wheel) {
+            function keepCursorInWheel(mouse, wheelArea, wheel) {
+                root.state = 'editing'
                 if (mouse.buttons & Qt.LeftButton) {
                     // cartesian to polar coords
                     var ro = Math.sqrt(Math.pow(mouse.x-wheel.width/2,2)+Math.pow(mouse.y-wheel.height/2,2));
@@ -110,13 +111,22 @@ Item {
                         ro = wheel.width/2;
 
                     // polar to cartesian coords
+                    var cursor = Qt.vector2d(0, 0);
                     cursor.x = Math.max(-cursor.r, Math.min(wheelArea.width, ro*Math.cos(theta)+wheel.width/2)-pickerCursor.r);
                     cursor.y = Math.max(-cursor.r, Math.min(wheelArea.height, wheel.height/2-ro*Math.sin(theta)-pickerCursor.r));
+
+                    hue = Math.ceil((Math.atan2(((cursor.y+pickerCursor.r-wheel.height/2)*(-1)),((cursor.x+pickerCursor.r-wheel.width/2)))/(Math.PI*2)+0.5)*100)/100
+                    saturation = Math.ceil(Math.sqrt(Math.pow(cursor.x+pickerCursor.r-width/2,2)+Math.pow(cursor.y+pickerCursor.r-height/2,2))/wheel.height*2*100)/100;
+
                 }
             }
             anchors.fill: parent
-            onPositionChanged: keepCursorInWheel(mouse, wheelArea, pickerCursor, wheel)
-            onPressed: keepCursorInWheel(mouse, wheelArea, pickerCursor, wheel)
+            onPositionChanged: keepCursorInWheel(mouse, wheelArea,  wheel)
+            onPressed: keepCursorInWheel(mouse, wheelArea, wheel)
+            onReleased: {
+                root.state = ''
+                root.accepted() ;
+            }
         }
     }
 

@@ -14,16 +14,13 @@ Item {
     property vector4d colorRGBA: Qt.vector4d(1,1,1,1) ;
     QtObject{
         id: m
+        // Color value in HSVA with floating point values between 0.0 and 1.0.
         property vector4d colorHSVA: ColorUtils.rgba2hsva(colorRGBA);
     }
 
 
     signal accepted
 
-    onColorRGBAChanged: {
-        alphaSlider.value = colorRGBA.w
-//        rgbAlpha.value = root.colorRGBA.w
-    }
     onAccepted: {
         console.debug("DATA => accepted")
     }
@@ -38,6 +35,18 @@ Item {
             Layout.fillHeight: true
             Layout.minimumWidth: 200
             Layout.minimumHeight: 200
+
+            hue: m.colorHSVA.x
+            saturation: m.colorHSVA.y
+            onHueChanged: {
+                colorRGBA = ColorUtils.hsva2rgba( Qt.vector4d(hue, m.colorHSVA.y, m.colorHSVA.z, m.colorHSVA.w) )
+            }
+            onSaturationChanged: {
+                colorRGBA = ColorUtils.hsva2rgba( Qt.vector4d(m.colorHSVA.x, saturation, m.colorHSVA.z, m.colorHSVA.w) )
+            }
+            onAccepted: {
+                root.accepted()
+            }
         }
 
         // brightness picker slider
@@ -53,9 +62,13 @@ Item {
                     GradientStop {
                         id: brightnessBeginColor
                         position: 0.0
-                        color: ColorUtils.hsba(colorObject._HSBAhue,
-                                               colorObject._HSBAsaturation, 1,
-                                               1)
+                        color: {
+                            var hsva = Qt.vector4d(m.colorHSVA.x, m.colorHSVA.y, m.colorHSVA.z, m.colorHSVA.w)
+                            hsva.z = 1
+                            hsva.w = 1
+                            var rgba = ColorUtils.hsva2rgba(hsva)
+                            return Qt.rgba(rgba.x, rgba.y, rgba.z, rgba.w)
+                        }
                     }
                     GradientStop {
                         position: 1.0
@@ -67,6 +80,13 @@ Item {
             VerticalSlider {
                 id: brigthnessSlider
                 anchors.fill: parent
+                value: m.colorHSVA.z
+                onValueChanged: {
+                    colorRGBA = ColorUtils.hsva2rgba(Qt.vector4d(m.colorHSVA.x, m.colorHSVA.y, value, m.colorHSVA.w))
+                }
+                onAccepted: {
+                    root.accepted()
+                }
             }
         }
 
@@ -94,6 +114,7 @@ Item {
             }
             VerticalSlider {
                 id: alphaSlider
+                value: colorRGBA.w
                 anchors.fill: parent
                 onValueChanged: {
                     colorRGBA.w = value
@@ -164,9 +185,7 @@ Item {
                     max: 1
                     min: 0
                     onAccepted: {
-                        var hsva = Qt.vector4d(m.colorHSVA)
-                        hsva.x = boxValue ;
-                        colorRGBA.x = ColorUtils.hsva2rgba(hsva).x
+                        colorRGBA = ColorUtils.hsva2rgba( Qt.vector4d(boxValue, m.colorHSVA.y, m.colorHSVA.z, m.colorHSVA.w) )
                         root.accepted()
                     }
                 }
@@ -177,6 +196,10 @@ Item {
                     decimals: 2
                     max: 1
                     min: 0
+                    onAccepted: {
+                        colorRGBA = ColorUtils.hsva2rgba( Qt.vector4d(m.colorHSVA.x, boxValue, m.colorHSVA.z, m.colorHSVA.w) )
+                        root.accepted()
+                    }
                 }
                 NumberBox {
                     id: brightness
@@ -185,6 +208,10 @@ Item {
                     decimals: 2
                     max: 1
                     min: 0
+                    onAccepted: {
+                        colorRGBA = ColorUtils.hsva2rgba( Qt.vector4d(m.colorHSVA.x, m.colorHSVA.y, boxValue, m.colorHSVA.w) )
+                        root.accepted()
+                    }
                 }
                 NumberBox {
                     id: hsbAlpha
