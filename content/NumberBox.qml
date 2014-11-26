@@ -47,9 +47,8 @@ Row {
 
 //            }
             onEditingFinished: {
-                var newText = parseFloat(inputBox.text).toString()
-                root.accepted(newText)
-                console.log("editing finish") ;
+                var newText = parseFloat(inputBox.text).toString();
+                root.accepted(newText);
             }
         }
     }

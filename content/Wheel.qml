@@ -10,7 +10,9 @@ Item {
 
     property real hue : 1
     property real saturation : 1
-    signal accepted
+
+    signal accepted()
+    signal updateHS(var hueSignal, var saturationSignal)
 
     states :
         // When user is moving the slider
@@ -18,7 +20,8 @@ Item {
             name: "editing"
             PropertyChanges {
                 target: root
-                hue: hue // Better solution ? because the value is change in the fonction of mouse area
+                // Better solution ? because the value is change in the fonction of mouse area
+                hue: hue
                 saturation: saturation
             }
         }
@@ -79,8 +82,8 @@ Item {
 
         Item {
             id: pickerCursor
-            x: parent.width/2-r
-            y:parent.height/2-r
+            x: parent.width/2 + root.saturation * parent.width/2 * Math.cos(2 * Math.PI * root.hue - Math.PI) -r
+            y: parent.width/2 + root.saturation * parent.width/2 * Math.sin(-2 * Math.PI * root.hue - Math.PI) -r
             property int r : 8
             Rectangle {
                 width: parent.r*2; height: parent.r*2
@@ -112,12 +115,12 @@ Item {
 
                     // polar to cartesian coords
                     var cursor = Qt.vector2d(0, 0);
-                    cursor.x = Math.max(-cursor.r, Math.min(wheelArea.width, ro*Math.cos(theta)+wheel.width/2)-pickerCursor.r);
-                    cursor.y = Math.max(-cursor.r, Math.min(wheelArea.height, wheel.height/2-ro*Math.sin(theta)-pickerCursor.r));
+                    cursor.x = Math.max(-pickerCursor.r, Math.min(wheelArea.width, ro*Math.cos(theta)+wheel.width/2)-pickerCursor.r);
+                    cursor.y = Math.max(-pickerCursor.r, Math.min(wheelArea.height, wheel.height/2-ro*Math.sin(theta)-pickerCursor.r));
 
                     hue = Math.ceil((Math.atan2(((cursor.y+pickerCursor.r-wheel.height/2)*(-1)),((cursor.x+pickerCursor.r-wheel.width/2)))/(Math.PI*2)+0.5)*100)/100
                     saturation = Math.ceil(Math.sqrt(Math.pow(cursor.x+pickerCursor.r-width/2,2)+Math.pow(cursor.y+pickerCursor.r-height/2,2))/wheel.height*2*100)/100;
-
+                    root.updateHS(hue, saturation) ;
                 }
             }
             anchors.fill: parent

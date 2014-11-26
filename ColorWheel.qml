@@ -38,11 +38,8 @@ Item {
 
             hue: m.colorHSVA.x
             saturation: m.colorHSVA.y
-            onHueChanged: {
-                colorRGBA = ColorUtils.hsva2rgba( Qt.vector4d(hue, m.colorHSVA.y, m.colorHSVA.z, m.colorHSVA.w) )
-            }
-            onSaturationChanged: {
-                colorRGBA = ColorUtils.hsva2rgba( Qt.vector4d(m.colorHSVA.x, saturation, m.colorHSVA.z, m.colorHSVA.w) )
+            onUpdateHS: {
+                colorRGBA = ColorUtils.hsva2rgba( Qt.vector4d(hueSignal, saturationSignal, m.colorHSVA.z, m.colorHSVA.w) )
             }
             onAccepted: {
                 root.accepted()
@@ -180,7 +177,7 @@ Item {
                 NumberBox {
                     id: hue
                     caption: "H"
-                    value: Math.round(m.colorHSVA.x*100)/100 // 2 Decimals
+                    value:{ console.log(m.colorHSVA.x) ; return Math.round(m.colorHSVA.x*100)/100 }// 2 Decimals
                     decimals: 2
                     max: 1
                     min: 0
