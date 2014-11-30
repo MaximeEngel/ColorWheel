@@ -11,11 +11,11 @@ Item {
     focus: true
 
     // Color value in RGBA with floating point values between 0.0 and 1.0.
-    property vector4d colorRGBA: Qt.vector4d(1,1,1,1) ;
+    property vector4d colorRGBA: Qt.vector4d(1,1,1,1)
     QtObject{
         id: m
         // Color value in HSVA with floating point values between 0.0 and 1.0.
-        property vector4d colorHSVA: ColorUtils.rgba2hsva(colorRGBA);
+        property vector4d colorHSVA: ColorUtils.rgba2hsva(root.colorRGBA);
     }
 
 
@@ -60,10 +60,7 @@ Item {
                         id: brightnessBeginColor
                         position: 0.0
                         color: {
-                            var hsva = Qt.vector4d(m.colorHSVA.x, m.colorHSVA.y, m.colorHSVA.z, m.colorHSVA.w)
-                            hsva.z = 1
-                            hsva.w = 1
-                            var rgba = ColorUtils.hsva2rgba(hsva)
+                            var rgba = ColorUtils.hsva2rgba(Qt.vector4d(m.colorHSVA.x, m.colorHSVA.y, 1, 1))
                             return Qt.rgba(rgba.x, rgba.y, rgba.z, rgba.w)
                         }
                     }
@@ -177,7 +174,7 @@ Item {
                 NumberBox {
                     id: hue
                     caption: "H"
-                    value:{ console.log(m.colorHSVA.x) ; return Math.round(m.colorHSVA.x*100)/100 }// 2 Decimals
+                    value: Math.round(m.colorHSVA.x*100)/100 // 2 Decimals
                     decimals: 2
                     max: 1
                     min: 0
