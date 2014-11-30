@@ -1,7 +1,8 @@
 import QtQuick 2.2
+import "ColorUtils.js" as ColorUtils
 
 Row {
-    id: root // toujorus root à la racine
+    id: root // toujours root à la racine
     property string caption: ""
     property real value: 0
     property real min: 0
@@ -30,24 +31,14 @@ Row {
         anchors.left: captionBox.right; anchors.right: parent.right
         TextInput {
             id: inputBox
-            text: root.value
+            text: root.value.toString()
             anchors.leftMargin: 4; anchors.topMargin: 1; anchors.fill: parent
             color: "#AAAAAA"; selectionColor: "#FF7777AA"
             font.pixelSize: 14
             focus: true
-            maximumLength: 10
-//            validator: DoubleValidator { // remettre int ?
-//                bottom: min
-//                top: max
-//                decimals: decimals
-
-//            }
-
-//            onTextChanged: {
-
-//            }
+            maximumLength: 3
             onEditingFinished: {
-                var newText = parseFloat(inputBox.text).toString();
+                var newText = ColorUtils.clamp(parseFloat(inputBox.text), root.min, root.max);
                 root.accepted(newText);
             }
         }

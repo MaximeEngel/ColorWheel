@@ -64,6 +64,8 @@ function rgba2hsva(rgba) {
     else
         hsva.y = delta / cMax ;
 
+    console.log("fonction appelée");
+
     return hsva;
 }
 
