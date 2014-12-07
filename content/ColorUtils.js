@@ -92,5 +92,5 @@ function intToHexa(val , nb)
 
 function hexaFromRGBA(red, green, blue, alpha)
 {
-    return "#"+intToHexa(alpha)+intToHexa(red)+intToHexa(green)+intToHexa(blue)
+    return intToHexa(Math.round(red * 255), 2)+intToHexa(Math.round(green * 255), 2)+intToHexa(Math.round(blue * 255), 2);
 }

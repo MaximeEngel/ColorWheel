@@ -79,8 +79,8 @@ Item {
 
         Item {
             id: pickerCursor
-            x: parent.width/2 + root.saturation * parent.width/2 * Math.cos(2 * Math.PI * root.hue - Math.PI) -r
-            y: parent.width/2 + root.saturation * parent.width/2 * Math.sin(-2 * Math.PI * root.hue - Math.PI) -r
+            x: parent.width/2 * (1 + root.saturation * Math.cos(2 * Math.PI * root.hue - Math.PI)) - r
+            y: parent.width/2 * (1 + root.saturation * Math.sin(-2 * Math.PI * root.hue - Math.PI)) - r
             property int r : 8
             Rectangle {
                 width: parent.r*2; height: parent.r*2

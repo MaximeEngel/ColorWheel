@@ -2,7 +2,7 @@ import QtQuick 2.2
 import "ColorUtils.js" as ColorUtils
 
 Row {
-    id: root // toujours root à la racine
+    id: root
     property string caption: ""
     property real value: 0
     property real min: 0
@@ -38,7 +38,9 @@ Row {
             focus: true
             maximumLength: 3
             onEditingFinished: {
-                var newText = ColorUtils.clamp(parseFloat(inputBox.text), root.min, root.max);
+                var newText = parseFloat(inputBox.text);
+                // Why don't work ?
+//                var newText = ColorUtils.clamp(parseFloat(inputBox.text), root.min, root.max).toString();
                 root.accepted(newText);
             }
         }

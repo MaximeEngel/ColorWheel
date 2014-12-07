@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.2
 import QtQuick.Window 2.0
 import QtQuick.Layouts 1.1
 import "content"
@@ -11,13 +11,12 @@ Item {
     focus: true
 
     // Color value in RGBA with floating point values between 0.0 and 1.0.
-    property vector4d colorRGBA: Qt.vector4d(1,1,1,1)
-    QtObject{
+    property vector4d colorRGBA: Qt.vector4d(1, 1, 1, 1)
+    QtObject {
         id: m
         // Color value in HSVA with floating point values between 0.0 and 1.0.
-        property vector4d colorHSVA: ColorUtils.rgba2hsva(root.colorRGBA);
+        property vector4d colorHSVA: ColorUtils.rgba2hsva(root.colorRGBA)
     }
-
 
     signal accepted
 
@@ -39,7 +38,10 @@ Item {
             hue: m.colorHSVA.x
             saturation: m.colorHSVA.y
             onUpdateHS: {
-                colorRGBA = ColorUtils.hsva2rgba( Qt.vector4d(hueSignal, saturationSignal, m.colorHSVA.z, m.colorHSVA.w) )
+                colorRGBA = ColorUtils.hsva2rgba(Qt.vector4d(hueSignal,
+                                                             saturationSignal,
+                                                             m.colorHSVA.z,
+                                                             m.colorHSVA.w))
             }
             onAccepted: {
                 root.accepted()
@@ -60,7 +62,9 @@ Item {
                         id: brightnessBeginColor
                         position: 0.0
                         color: {
-                            var rgba = ColorUtils.hsva2rgba(Qt.vector4d(m.colorHSVA.x, m.colorHSVA.y, 1, 1))
+                            var rgba = ColorUtils.hsva2rgba(
+                                        Qt.vector4d(m.colorHSVA.x,
+                                                    m.colorHSVA.y, 1, 1))
                             return Qt.rgba(rgba.x, rgba.y, rgba.z, rgba.w)
                         }
                     }
@@ -76,7 +80,10 @@ Item {
                 anchors.fill: parent
                 value: m.colorHSVA.z
                 onValueChanged: {
-                    colorRGBA = ColorUtils.hsva2rgba(Qt.vector4d(m.colorHSVA.x, m.colorHSVA.y, value, m.colorHSVA.w))
+                    colorRGBA = ColorUtils.hsva2rgba(Qt.vector4d(m.colorHSVA.x,
+                                                                 m.colorHSVA.y,
+                                                                 value,
+                                                                 m.colorHSVA.w))
                 }
                 onAccepted: {
                     root.accepted()
@@ -140,33 +147,53 @@ Item {
                     height: parent.height
                     border.width: 1
                     border.color: "black"
-                    color:  Qt.rgba(colorRGBA.x, colorRGBA.y, colorRGBA.z, colorRGBA.w)
+                    color: Qt.rgba(colorRGBA.x, colorRGBA.y, colorRGBA.z,
+                                   colorRGBA.w)
                 }
             }
 
+
             // current color value
-            PanelBorder {
+            Item {
                 Layout.minimumWidth: 120
                 Layout.minimumHeight: 25
-                TextInput {
-                    id: currentColor
+
+                Text {
+                    id: captionBox
+                    text: "#"
+                    width: 18
+                    height: parent.height
                     color: "#AAAAAA"
-                    selectionColor: "#FF7777AA"
-                    font.pixelSize: 20
-                    font.capitalization: "AllUppercase"
-                    maximumLength: 9
-                    focus: true
-                    text: Qt.rgba(colorRGBA.x, colorRGBA.y, colorRGBA.z, colorRGBA.w)
-                    font.family: "TlwgTypewriter"
-                    anchors.verticalCenterOffset: 0
-                    anchors.verticalCenter: parent.verticalCenter
-                    selectByMouse: true
-                    validator: RegExpValidator {
-                        regExp: /^([A-Fa-f0-9]{8})$/
+                    font.pixelSize: 16
+                    font.bold: true
+                }
+                PanelBorder {
+                    height: parent.height
+                    anchors.left : captionBox.right
+                    width: parent.width - captionBox.width
+                    TextInput {
+                        id: currentColor
+                        color: "#AAAAAA"
+                        selectionColor: "#FF7777AA"
+                        font.pixelSize: 20
+                        font.capitalization: "AllUppercase"
+                        maximumLength: 9
+                        focus: true
+                        text: ColorUtils.hexaFromRGBA(colorRGBA.x, colorRGBA.y,
+                                                      colorRGBA.z, colorRGBA.w)
+                        font.family: "TlwgTypewriter"
+                        selectByMouse: true
+                        validator: RegExpValidator {
+                            regExp: /^([A-Fa-f0-9]{6})$/
+                        }
+                        onEditingFinished: {
+                            colorRGBA.x = parseInt(text.substr(0, 2), 16) / 255
+                            colorRGBA.y = parseInt(text.substr(2, 2), 16) / 255
+                            colorRGBA.z = parseInt(text.substr(4, 2), 16) / 255
+                        }
                     }
                 }
             }
-
             // H, S, B color value boxes
             Column {
                 Layout.minimumWidth: 80
@@ -174,43 +201,49 @@ Item {
                 NumberBox {
                     id: hue
                     caption: "H"
-                    value: Math.round(m.colorHSVA.x*100)/100 // 2 Decimals
+                    value: Math.round(m.colorHSVA.x * 100) / 100 // 2 Decimals
                     decimals: 2
                     max: 1
                     min: 0
                     onAccepted: {
-                        colorRGBA = ColorUtils.hsva2rgba( Qt.vector4d(boxValue, m.colorHSVA.y, m.colorHSVA.z, m.colorHSVA.w) )
+                        colorRGBA = ColorUtils.hsva2rgba(
+                                    Qt.vector4d(boxValue, m.colorHSVA.y,
+                                                m.colorHSVA.z, m.colorHSVA.w))
                         root.accepted()
                     }
                 }
                 NumberBox {
                     id: sat
                     caption: "S"
-                    value: Math.round(m.colorHSVA.y*100)/100 // 2 Decimals
+                    value: Math.round(m.colorHSVA.y * 100) / 100 // 2 Decimals
                     decimals: 2
                     max: 1
                     min: 0
                     onAccepted: {
-                        colorRGBA = ColorUtils.hsva2rgba( Qt.vector4d(m.colorHSVA.x, boxValue, m.colorHSVA.z, m.colorHSVA.w) )
+                        colorRGBA = ColorUtils.hsva2rgba(
+                                    Qt.vector4d(m.colorHSVA.x, boxValue,
+                                                m.colorHSVA.z, m.colorHSVA.w))
                         root.accepted()
                     }
                 }
                 NumberBox {
                     id: brightness
                     caption: "B"
-                    value: Math.round(m.colorHSVA.z*100)/100 // 2 Decimals
+                    value: Math.round(m.colorHSVA.z * 100) / 100 // 2 Decimals
                     decimals: 2
                     max: 1
                     min: 0
                     onAccepted: {
-                        colorRGBA = ColorUtils.hsva2rgba( Qt.vector4d(m.colorHSVA.x, m.colorHSVA.y, boxValue, m.colorHSVA.w) )
+                        colorRGBA = ColorUtils.hsva2rgba(
+                                    Qt.vector4d(m.colorHSVA.x, m.colorHSVA.y,
+                                                boxValue, m.colorHSVA.w))
                         root.accepted()
                     }
                 }
                 NumberBox {
                     id: hsbAlpha
                     caption: "A"
-                    value: Math.round(m.colorHSVA.w*100)/100 // 2 Decimals
+                    value: Math.round(m.colorHSVA.w * 100) / 100 // 2 Decimals
                     decimals: 2
                     max: 1
                     min: 0
@@ -228,36 +261,36 @@ Item {
                 NumberBox {
                     id: red
                     caption: "R"
-                    value:  Math.round(root.colorRGBA.x * 255)
+                    value: Math.round(root.colorRGBA.x * 255)
                     min: 0
                     max: 255
                     decimals: 0
                     onAccepted: {
-                        colorRGBA.x = boxValue/255
+                        colorRGBA.x = boxValue / 255
                         root.accepted()
                     }
                 }
                 NumberBox {
                     id: green
                     caption: "G"
-                    value:  Math.round(root.colorRGBA.y * 255)
+                    value: Math.round(root.colorRGBA.y * 255)
                     min: 0
                     max: 255
                     decimals: 0
                     onAccepted: {
-                        root.colorRGBA.y = boxValue/255
+                        root.colorRGBA.y = boxValue / 255
                         root.accepted()
                     }
                 }
                 NumberBox {
                     id: blue
                     caption: "B"
-                    value:  Math.round(root.colorRGBA.z * 255)
+                    value: Math.round(root.colorRGBA.z * 255)
                     min: 0
                     max: 255
                     decimals: 0
                     onAccepted: {
-                        root.colorRGBA.z = boxValue/255
+                        root.colorRGBA.z = boxValue / 255
                         root.accepted()
                     }
                 }
@@ -269,7 +302,7 @@ Item {
                     max: 255
                     decimals: 0
                     onAccepted: {
-                        root.colorRGBA.w = boxValue/255
+                        root.colorRGBA.w = boxValue / 255
                         root.accepted()
                     }
                 }
