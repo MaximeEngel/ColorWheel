@@ -11,11 +11,12 @@ Item {
     focus: true
 
     // Color value in RGBA with floating point values between 0.0 and 1.0.
-    property vector4d colorRGBA: Qt.vector4d(1, 1, 1, 1)
+
+    property vector4d colorHSVA: Qt.vector4d(1, 0, 1, 1)
     QtObject {
         id: m
         // Color value in HSVA with floating point values between 0.0 and 1.0.
-        property vector4d colorHSVA: ColorUtils.rgba2hsva(root.colorRGBA)
+        property vector4d colorRGBA: ColorUtils.hsva2rgba(root.colorHSVA)
     }
 
     signal accepted
@@ -35,13 +36,10 @@ Item {
             Layout.minimumWidth: 200
             Layout.minimumHeight: 200
 
-            hue: m.colorHSVA.x
-            saturation: m.colorHSVA.y
+            hue: colorHSVA.x
+            saturation: colorHSVA.y
             onUpdateHS: {
-                colorRGBA = ColorUtils.hsva2rgba(Qt.vector4d(hueSignal,
-                                                             saturationSignal,
-                                                             m.colorHSVA.z,
-                                                             m.colorHSVA.w))
+                colorHSVA = Qt.vector4d(hueSignal,saturationSignal, colorHSVA.z, colorHSVA.w)
             }
             onAccepted: {
                 root.accepted()
@@ -63,8 +61,8 @@ Item {
                         position: 0.0
                         color: {
                             var rgba = ColorUtils.hsva2rgba(
-                                        Qt.vector4d(m.colorHSVA.x,
-                                                    m.colorHSVA.y, 1, 1))
+                                        Qt.vector4d(colorHSVA.x,
+                                                    colorHSVA.y, 1, 1))
                             return Qt.rgba(rgba.x, rgba.y, rgba.z, rgba.w)
                         }
                     }
@@ -78,12 +76,9 @@ Item {
             VerticalSlider {
                 id: brigthnessSlider
                 anchors.fill: parent
-                value: m.colorHSVA.z
+                value: colorHSVA.z
                 onValueChanged: {
-                    colorRGBA = ColorUtils.hsva2rgba(Qt.vector4d(m.colorHSVA.x,
-                                                                 m.colorHSVA.y,
-                                                                 value,
-                                                                 m.colorHSVA.w))
+                    colorHSVA = Qt.vector4d(colorHSVA.x, colorHSVA.y, value, colorHSVA.w)
                 }
                 onAccepted: {
                     root.accepted()
@@ -105,7 +100,7 @@ Item {
                 gradient: Gradient {
                     GradientStop {
                         position: 0.0
-                        color: Qt.rgba(colorRGBA.x, colorRGBA.y, colorRGBA.z, 1)
+                        color: Qt.rgba(m.colorRGBA.x, m.colorRGBA.y, m.colorRGBA.z, 1)
                     }
                     GradientStop {
                         position: 1.0
@@ -115,10 +110,10 @@ Item {
             }
             VerticalSlider {
                 id: alphaSlider
-                value: colorRGBA.w
+                value: colorHSVA.w
                 anchors.fill: parent
                 onValueChanged: {
-                    colorRGBA.w = value
+                    colorHSVA.w = value
                 }
                 onAccepted: {
                     root.accepted()
@@ -147,8 +142,8 @@ Item {
                     height: parent.height
                     border.width: 1
                     border.color: "black"
-                    color: Qt.rgba(colorRGBA.x, colorRGBA.y, colorRGBA.z,
-                                   colorRGBA.w)
+                    color: Qt.rgba(m.colorRGBA.x, m.colorRGBA.y, m.colorRGBA.z,
+                                   m.colorRGBA.w)
                 }
             }
 
@@ -179,17 +174,19 @@ Item {
                         font.capitalization: "AllUppercase"
                         maximumLength: 9
                         focus: true
-                        text: ColorUtils.hexaFromRGBA(colorRGBA.x, colorRGBA.y,
-                                                      colorRGBA.z, colorRGBA.w)
+                        text: ColorUtils.hexaFromRGBA(m.colorRGBA.x, m.colorRGBA.y,
+                                                      m.colorRGBA.z, m.colorRGBA.w)
                         font.family: "TlwgTypewriter"
                         selectByMouse: true
                         validator: RegExpValidator {
                             regExp: /^([A-Fa-f0-9]{6})$/
                         }
                         onEditingFinished: {
-                            colorRGBA.x = parseInt(text.substr(0, 2), 16) / 255
-                            colorRGBA.y = parseInt(text.substr(2, 2), 16) / 255
-                            colorRGBA.z = parseInt(text.substr(4, 2), 16) / 255
+                            var colorTmp = Qt.vector4d( parseInt(text.substr(0, 2), 16) / 255,
+                                                    parseInt(text.substr(2, 2), 16) / 255,
+                                                    parseInt(text.substr(4, 2), 16) / 255,
+                                                    colorHSVA.w) ;
+                            colorHSVA = ColorUtils.rgba2hsva(colorTmp)
                         }
                     }
                 }
@@ -201,54 +198,48 @@ Item {
                 NumberBox {
                     id: hue
                     caption: "H"
-                    value: Math.round(m.colorHSVA.x * 100) / 100 // 2 Decimals
+                    value: Math.round(colorHSVA.x * 100) / 100 // 2 Decimals
                     decimals: 2
                     max: 1
                     min: 0
                     onAccepted: {
-                        colorRGBA = ColorUtils.hsva2rgba(
-                                    Qt.vector4d(boxValue, m.colorHSVA.y,
-                                                m.colorHSVA.z, m.colorHSVA.w))
+                        colorHSVA =  Qt.vector4d(boxValue, colorHSVA.y, colorHSVA.z, colorHSVA.w)
                         root.accepted()
                     }
                 }
                 NumberBox {
                     id: sat
                     caption: "S"
-                    value: Math.round(m.colorHSVA.y * 100) / 100 // 2 Decimals
+                    value: Math.round(colorHSVA.y * 100) / 100 // 2 Decimals
                     decimals: 2
                     max: 1
                     min: 0
                     onAccepted: {
-                        colorRGBA = ColorUtils.hsva2rgba(
-                                    Qt.vector4d(m.colorHSVA.x, boxValue,
-                                                m.colorHSVA.z, m.colorHSVA.w))
+                        colorHSVA = Qt.vector4d(colorHSVA.x, boxValue, colorHSVA.z, colorHSVA.w)
                         root.accepted()
                     }
                 }
                 NumberBox {
                     id: brightness
                     caption: "B"
-                    value: Math.round(m.colorHSVA.z * 100) / 100 // 2 Decimals
+                    value: Math.round(colorHSVA.z * 100) / 100 // 2 Decimals
                     decimals: 2
                     max: 1
                     min: 0
                     onAccepted: {
-                        colorRGBA = ColorUtils.hsva2rgba(
-                                    Qt.vector4d(m.colorHSVA.x, m.colorHSVA.y,
-                                                boxValue, m.colorHSVA.w))
+                        colorHSVA = Qt.vector4d(colorHSVA.x, colorHSVA.y, boxValue, colorHSVA.w)
                         root.accepted()
                     }
                 }
                 NumberBox {
                     id: hsbAlpha
                     caption: "A"
-                    value: Math.round(m.colorHSVA.w * 100) / 100 // 2 Decimals
+                    value: Math.round(colorHSVA.w * 100) / 100 // 2 Decimals
                     decimals: 2
                     max: 1
                     min: 0
                     onAccepted: {
-                        colorRGBA.w = boxValue
+                        colorHSVA.w = boxValue
                         root.accepted()
                     }
                 }
@@ -261,48 +252,60 @@ Item {
                 NumberBox {
                     id: red
                     caption: "R"
-                    value: Math.round(root.colorRGBA.x * 255)
+                    value: Math.round(m.colorRGBA.x * 255)
                     min: 0
                     max: 255
                     decimals: 0
                     onAccepted: {
-                        colorRGBA.x = boxValue / 255
+                        var colorTmp = Qt.vector4d( boxValue / 255,
+                                                    m.colorRGBA.y,
+                                                    m.colorRGBA.z,
+                                                    colorHSVA.w) ;
+                        colorHSVA = ColorUtils.rgba2hsva(colorTmp)
                         root.accepted()
                     }
                 }
                 NumberBox {
                     id: green
                     caption: "G"
-                    value: Math.round(root.colorRGBA.y * 255)
+                    value: Math.round(m.colorRGBA.y * 255)
                     min: 0
                     max: 255
                     decimals: 0
                     onAccepted: {
-                        root.colorRGBA.y = boxValue / 255
+                        var colorTmp = Qt.vector4d( m.colorRGBA.x,
+                                                    boxValue / 255,
+                                                    m.colorRGBA.z,
+                                                    colorHSVA.w) ;
+                        colorHSVA = ColorUtils.rgba2hsva(colorTmp)
                         root.accepted()
                     }
                 }
                 NumberBox {
                     id: blue
                     caption: "B"
-                    value: Math.round(root.colorRGBA.z * 255)
+                    value: Math.round(m.colorRGBA.z * 255)
                     min: 0
                     max: 255
                     decimals: 0
                     onAccepted: {
-                        root.colorRGBA.z = boxValue / 255
+                        var colorTmp = Qt.vector4d( m.colorRGBA.x,
+                                                    m.colorRGBA.y,
+                                                    boxValue / 255,
+                                                    colorHSVA.w) ;
+                        colorHSVA = ColorUtils.rgba2hsva(colorTmp)
                         root.accepted()
                     }
                 }
                 NumberBox {
                     id: rgbAlpha
                     caption: "A"
-                    value: Math.round(root.colorRGBA.w * 255)
+                    value: Math.round(m.colorRGBA.w * 255)
                     min: 0
                     max: 255
                     decimals: 0
                     onAccepted: {
-                        root.colorRGBA.w = boxValue / 255
+                        root.colorHSVA.w = boxValue / 255
                         root.accepted()
                     }
                 }

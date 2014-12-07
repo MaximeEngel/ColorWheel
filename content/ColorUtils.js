@@ -35,39 +35,37 @@ function hsva2rgba(hsva) {
 
 }
 
-function rgba2hsva(rgba) {
-    var cMax = Math.max(rgba.x, rgba.y, rgba.z) ;
-    var cMin = Math.min(rgba.x, rgba.y, rgba.z) ;
-    var delta = cMax - cMin ;
-    var hsva = Qt.vector4d(0, 0, cMax, rgba.w);
+function rgba2hsva(rgba)
+{
+    var r = rgba.x;
+    var g = rgba.y;
+    var b = rgba.z;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var h, s, v = max;
 
-    if (delta == 0)
-        return hsva ;
+    var d = max - min;
+    s = max === 0 ? 0 : d / max;
 
-    switch (cMax)
-    {
-        // in order to avoid negative value in hue when R = B
-        case rgba.z :
-            hsva.x = (((rgba.x - rgba.y) / delta) + 4 ) / 6.0 ;
-            break;
-        case rgba.x :
-            hsva.x = (((rgba.y - rgba.z) / delta) % 6) / 6.0 ; // If we want degree * 60 instead of / 6
-            break;
-        case rgba.y :
-            hsva.x = (((rgba.z - rgba.x) / delta) + 2 ) / 6.0 ;
-            break;
-
+    if(max == min){
+        h = 0; // achromatic
+    } else{
+        switch(max){
+            case r:
+                h = (g - b) / d + (g < b ? 6 : 0);
+                break;
+            case g:
+                h = (b - r) / d + 2;
+                break;
+            case b:
+                h = (r - g) / d + 4;
+                break;
+        }
+        h /= 6;
     }
 
-    if (cMax == 0)
-        hsva.y = 0;
-    else
-        hsva.y = delta / cMax ;
-
-    console.log("fonction appelée");
-
-    return hsva;
+    return Qt.vector4d(h, s, v, rgba.w);
 }
+
 
 // extracts integer color channel value [0..255] from color value
 function getChannelStr(clr, channelIdx) {
