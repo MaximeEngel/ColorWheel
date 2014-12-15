@@ -15,7 +15,9 @@ Item {
             name: "editing"
             PropertyChanges {
                 target: root
-                value: value // Better solution ? because the value is change in the fonction of mouse area
+                // Initialize with the value in the default state.
+                // Allows to break the link in that state.
+                value: root.value
             }
         }
 

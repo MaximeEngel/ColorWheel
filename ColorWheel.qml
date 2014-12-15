@@ -142,8 +142,8 @@ Item {
                     height: parent.height
                     border.width: 1
                     border.color: "black"
-                    color: Qt.rgba(m.colorRGBA.x, m.colorRGBA.y, m.colorRGBA.z,
-                                   m.colorRGBA.w)
+                    color: Qt.rgba(m.colorRGBA.x, m.colorRGBA.y, m.colorRGBA.z)
+                    opacity: m.colorRGBA.w
                 }
             }
 
@@ -198,7 +198,8 @@ Item {
                 NumberBox {
                     id: hue
                     caption: "H"
-                    value: Math.round(colorHSVA.x * 100) / 100 // 2 Decimals
+                    // TODO: put in NumberBox
+                    value: Math.round(colorHSVA.x * 100000) / 100000 // 5 Decimals
                     decimals: 2
                     max: 1
                     min: 0
